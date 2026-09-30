@@ -1,5 +1,5 @@
 import streamlit as st
-from google import genai
+import google.generativeai as genai
 
 # Cấu hình giao diện trang rộng (Wide Layout)
 st.set_page_config(page_title="Gemini AI & Google Drive", layout="wide")
@@ -14,7 +14,7 @@ with col1:
     st.header("📁 Khung 1: Quản lý Google Drive & Cấu hình")
     
     # Ô nhập Gemini API Key
-    api_key = st.text_input("Nhập Gemini API Key của bạn:", type="password")
+    api_key = st.text_input("Nhập Gemini API Key của bạn (bắt đầu bằng AIzaSy...):", type="password")
     if not api_key:
         st.info("💡 Vui lòng nhập Gemini API Key để kích hoạt tính năng Chat.")
         
@@ -58,14 +58,12 @@ with col2:
                 st.session_state.messages.append({"role": "assistant", "content": response})
             else:
                 try:
-                    # Khởi tạo Client Gemini API
-                    client = genai.Client(api_key=api_key)
+                    # Cấu hình API Key
+                    genai.configure(api_key=api_key)
+                    model = genai.GenerativeModel('gemini-1.5-flash')
                     
-                    # Gọi mô hình Gemini chuẩn (gemini-2.0-flash)
-                    res = client.models.generate_content(
-                        model="gemini-2.0-flash",
-                        contents=prompt,
-                    )
+                    # Tạo câu trả lời
+                    res = model.generate_content(prompt)
                     response = res.text
                     st.markdown(response)
                     st.session_state.messages.append({"role": "assistant", "content": response})
