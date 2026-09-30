@@ -1,12 +1,13 @@
 import streamlit as st
+from google import genai
 
 # Cấu hình giao diện trang rộng (Wide Layout)
 st.set_page_config(page_title="Gemini AI & Google Drive", layout="wide")
 
 st.title("🤖 Ứng Dụng Gemini AI & Google Drive")
 
-# Chia giao diện làm 2 khung (cột) bằng nhau
-col1, col2 = st.columns([1, 1])
+# Chia giao diện làm 2 khung (cột)
+col1, col2 = st.columns(2)
 
 # ================= KHUNG 1: CẤU HÌNH & GOOGLE DRIVE (BÊN TRÁI) =================
 with col1:
@@ -15,11 +16,11 @@ with col1:
     # Ô nhập Gemini API Key
     api_key = st.text_input("Nhập Gemini API Key của bạn:", type="password")
     if not api_key:
-        st.info("💡 Bạn cần nhập Gemini API Key để kích hoạt tính năng Chat.")
+        st.info("💡 Vui lòng nhập Gemini API Key để kích hoạt tính năng Chat.")
         
     st.divider()
     
-    # Khai báo file/folder Google Drive
+    # Khai báo tệp/thư mục Google Drive
     st.subheader("Kết nối Tệp từ Google Drive")
     drive_input = st.text_input("Nhập File ID hoặc Đường dẫn Google Drive:")
     
@@ -44,17 +45,30 @@ with col2:
 
     # Ô nhập câu hỏi từ người dùng
     if prompt := st.chat_input("Nhập câu hỏi của bạn cho Gemini..."):
-        # Lưu câu hỏi người dùng
+        # Lưu câu hỏi của người dùng vào lịch sử
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
 
-        # Phản hồi từ Gemini AI
+        # Xử lý phản hồi từ Gemini AI
         with st.chat_message("assistant"):
-            if api_key:
-                response = f"Đã nhận câu hỏi: **{prompt}**. *(Hệ thống đang sẵn sàng xử lý cùng Gemini API)*"
-            else:
+            if not api_key:
                 response = "⚠️ Vui lòng nhập **Gemini API Key** ở Khung 1 bên trái để bắt đầu trò chuyện."
-            st.markdown(response)
-            
-        st.session_state.messages.append({"role": "assistant", "content": response})
+                st.markdown(response)
+                st.session_state.messages.append({"role": "assistant", "content": response})
+            else:
+                try:
+                    # Khởi tạo Client Gemini API
+                    client = genai.Client(api_key=api_key)
+                    
+                    # Gọi mô hình Gemini để trả lời
+                    res = client.models.generate_content(
+                        model="gemini-2.5-flash",
+                        contents=prompt,
+                    )
+                    response = res.text
+                    st.markdown(response)
+                    st.session_state.messages.append({"role": "assistant", "content": response})
+                except Exception as e:
+                    err_msg = f"❌ Lỗi kết nối Gemini API: {e}"
+                    st.error(err_msg)
