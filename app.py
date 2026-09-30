@@ -61,9 +61,9 @@ with col2:
                     # Khởi tạo Client Gemini API
                     client = genai.Client(api_key=api_key)
                     
-                    # Gọi mô hình Gemini để trả lời
+                    # Gọi mô hình Gemini chuẩn (gemini-2.0-flash)
                     res = client.models.generate_content(
-                        model="gemini-2.5-flash",
+                        model="gemini-2.0-flash",
                         contents=prompt,
                     )
                     response = res.text
